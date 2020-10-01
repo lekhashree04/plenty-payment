@@ -27,7 +27,7 @@ class TransactionService
     use Loggable;
 	
     /*** Save data in NovalnetTransaction table*/
-    public function saveTransaction($NovalnetTransactionData)
+    public function saveTransaction($TransactionData)
     {
         try {
             $database = pluginApp(DataBase::class);
@@ -55,3 +55,4 @@ class TransactionService
     }
     
 }
+
