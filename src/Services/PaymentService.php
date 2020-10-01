@@ -304,10 +304,7 @@ class PaymentService
 		
 		if($isPaymentSuccess)
 		{           
-			if(isset($serverRequestData['data']['pan_hash']))
-			{
-				unset($serverRequestData['data']['pan_hash']);
-			}
+			
 			
 			$this->sessionStorage->getPlugin()->setValue('nnPaymentData', array_merge($serverRequestData['data'], $responseData));
 			$this->pushNotification($notificationMessage, 'success', 100);
