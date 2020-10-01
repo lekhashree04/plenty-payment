@@ -1,4 +1,5 @@
 
+
 <?php
 /**
  * This module is used for real time processing of
@@ -92,7 +93,7 @@ class NovalnetServiceProvider extends ServiceProvider
                           PaymentRepositoryContract $paymentRepository,
                           DataBase $dataBase,
                           EventProceduresService $eventProceduresService)
-    {
+{
 
         // Register the Novalnet payment methods in the payment method container
         $payContainer->register('plenty_novalnet::NOVALNET_INVOICE', NovalnetInvoicePaymentMethod::class,
@@ -106,27 +107,31 @@ class NovalnetServiceProvider extends ServiceProvider
         $eventDispatcher->listen(GetPaymentMethodContent::class,
                 function(GetPaymentMethodContent $event) use($config, $paymentHelper, $addressRepository, $paymentService, $basketRepository, $paymentMethodService, $sessionStorage, $twig)
                 {
-        
                     if($paymentHelper->getPaymentKeyByMop($event->getMop()))
-                    {   
-                        $paymentKey = $paymentHelper->getPaymentKeyByMop($event->getMop()); 
-                        $basket = $basketRepository->load();            
-                        $billingAddressId = $basket->customerInvoiceAddressId;
-                        $address = $addressRepository->findAddressById($billingAddressId);
-                            foreach ($address->options as $option) {
-                            if ($option->typeId == 12) {
-                                $name = $option->value;
-                            }
-                            if ($option->typeId == 9) {
-                                $birthday = $option->value;
-                            }
-                        }
+                        {   
+                          $paymentKey = $paymentHelper->getPaymentKeyByMop($event->getMop()); 
+                          $basket = $basketRepository->load();            
+                          $billingAddressId = $basket->customerInvoiceAddressId;
+                          $address = $addressRepository->findAddressById($billingAddressId);
+                            foreach ($address->options as $option)
+                            {
+                               if ($option->typeId == 12) 
+                                  {
+                                      $name = $option->value;
+                                  }
+                                  if ($option->typeId == 9) 
+                                  {
+                                      $birthday = $option->value;
+                                   }
+                             }
                         $customerName = explode(' ', $name);
                         $firstname = $customerName[0];
-                        if( count( $customerName ) > 1 ) {
+                        if( count( $customerName ) > 1 ) 
+                        {
                             unset($customerName[0]);
                             $lastname = implode(' ', $customerName);
-                        } else {
+                        } else 
+                        {
                             $lastname = $firstname;
                         }
                         $firstName = empty ($firstname) ? $lastname : $firstname;
@@ -138,64 +143,51 @@ class NovalnetServiceProvider extends ServiceProvider
                         $paymentName = ($name ? $name : $paymentHelper->getTranslatedText(strtolower($paymentKey)));
                         $redirect = $paymentService->isRedirectPayment($paymentKey);    
                             
-                        if ($redirect && $paymentKey != 'NOVALNET_CC') { # Redirection payments
-                            $serverRequestData = $paymentService->getRequestParameters($basketRepository->load(), $paymentKey);
-                           if (empty($serverRequestData['data']['first_name']) && empty($serverRequestData['data']['last_name'])) {
-                            $content = $paymentHelper->getTranslatedText('nn_first_last_name_error');
-                            $contentType = 'errorCode';   
-                           } else {
+                           if (empty($serverRequestData['data']['first_name']) && empty($serverRequestData['data']['last_name'])) 
+                              {
+                                     $content = $paymentHelper->getTranslatedText('nn_first_last_name_error');
+                                     $contentType = 'errorCode';   
+                              } else 
+                              {
                                  $sessionStorage->getPlugin()->setValue('nnPaymentData', $serverRequestData['data']);
                                         $sessionStorage->getPlugin()->setValue('nnPaymentUrl', $serverRequestData['url']);
                                         $content = '';
                                         $contentType = 'continue';
-                           }
-                        } elseif ($paymentKey == 'NOVALNET_CC') { # Credit Card
-                            $encodedKey = base64_encode('vendor='.$paymentHelper->getNovalnetConfig('novalnet_vendor_id').'&product='.$paymentHelper->getNovalnetConfig('novalnet_product_id').'&server_ip='.$paymentHelper->getServerAddress().'&lang='.$sessionStorage->getLocaleSettings()->language);
-                            $nnIframeSource = 'https://secure.novalnet.de/cc?api=' . $encodedKey;
-                            $content = $twig->render('Novalnet::PaymentForm.NOVALNET_CC', [
-                                'nnCcFormUrl'           => $nnIframeSource,
-                                'nnPaymentProcessUrl'   => $paymentService->getProcessPaymentUrl(),
-                                'paymentMopKey'         =>  $paymentKey,
-                                'paymentName' => $paymentName,
-                                'nnFormDesign'          =>  $paymentService->getCcDesignConfig()
-                                       ]);
-                            $contentType = 'htmlContent';
+                              }
                         } 
                         else if(in_array($paymentKey, ['NOVALNET_INVOICE']))
                                 {
-                                    $processDirect = true;
-                                    $B2B_customer   = false;
-                                    if($paymentKey == 'NOVALNET_INVOICE')
-                                    {
-                                        $guaranteeStatus = $paymentService->getGuaranteeStatus($basketRepository->load(), $paymentKey);
-                                        if($guaranteeStatus != 'normal' && $guaranteeStatus != 'guarantee')
+                                        $processDirect = true;
+                                        $B2B_customer   = false;
+                                        if($paymentKey == 'NOVALNET_INVOICE')
                                         {
-                                            $processDirect = false;
-                                            $contentType = 'errorCode';
-                                            $content = $guaranteeStatus;
+                                              $guaranteeStatus = $paymentService->getGuaranteeStatus($basketRepository->load(), $paymentKey);
+                                            if($guaranteeStatus != 'normal' && $guaranteeStatus != 'guarantee')
+                                              {
+                                                 $processDirect = false;
+                                                 $contentType = 'errorCode';
+                                                  $content = $guaranteeStatus;
+                                              }else{
+                                                  $processDirect = true;                                              
+                                                  $B2B_customer  = true;
+                                                    }
                                         }
-                                       else {
-                                                $processDirect = true;                                              
-                                                $B2B_customer  = true;
-                                            }
-                                         }
                                     }
-                                    if ($processDirect) {
-                                    $content = '';
-                                    $contentType = 'continue';
-                                    $serverRequestData = $paymentService->getRequestParameters($basketRepository->load(), $paymentKey);
-                                    if (empty($serverRequestData['data']['first_name']) && empty($serverRequestData['data']['last_name'])) {
-                                            $content = $paymentHelper->getTranslatedText('nn_first_last_name_error');
-                                            $contentType = 'errorCode';   
-                                     } 
-                                    $sessionStorage->getPlugin()->setValue('nnPaymentData', $serverRequestData);
+                                    if ($processDirect) 
+                                    {
+                                          $content = '';
+                                          $contentType = 'continue';
+                                          $serverRequestData = $paymentService->getRequestParameters($basketRepository->load(), $paymentKey);
+                                          if (empty($serverRequestData['data']['first_name']) && empty($serverRequestData['data']['last_name']))
+                                            {
+                                              $content = $paymentHelper->getTranslatedText('nn_first_last_name_error');
+                                              $contentType = 'errorCode';   
+                                            } 
+                                          $sessionStorage->getPlugin()->setValue('nnPaymentData', $serverRequestData);
                                     
                                     }
                                     
-                                    } 
-                                } 
-                            }
-                                
+                               
                                 $event->setValue($content);
                                 $event->setType($contentType);
                         } 
@@ -205,22 +197,25 @@ class NovalnetServiceProvider extends ServiceProvider
         $eventDispatcher->listen(ExecutePayment::class,
             function (ExecutePayment $event) use ($paymentHelper, $paymentService, $sessionStorage, $transactionLogData,$config,$basketRepository)
             {
-                if($paymentHelper->getPaymentKeyByMop($event->getMop())) {
+                if($paymentHelper->getPaymentKeyByMop($event->getMop())) 
+                {
                     $sessionStorage->getPlugin()->setValue('nnOrderNo',$event->getOrderId());
                     $sessionStorage->getPlugin()->setValue('mop',$event->getMop());
                     $paymentKey = $paymentHelper->getPaymentKeyByMop($event->getMop());
                     $sessionStorage->getPlugin()->setValue('paymentkey', $paymentKey);
 
-                    if(!$paymentService->isRedirectPayment($paymentKey)) {
-						 $paymentService->paymentCalltoNovalnetServer();
+                    if(!$paymentService->isRedirectPayment($paymentKey)) 
+                    {
+						             $paymentService->paymentCalltoNovalnetServer();
                          $paymentService->validateResponse();
-                    } else {
-                        $paymentProcessUrl = $paymentService->getRedirectPaymentUrl();
+                    } else 
+                    {
+                        $paymentProcessUrl = $paymentService->validateResponse();
                         $event->setType('redirectUrl');
                         $event->setValue($paymentProcessUrl);
                     }
                 }
-            }
-        );   
+            });   
     }
 }
+
