@@ -69,7 +69,7 @@ class NovalnetInvoicePaymentMethod extends PaymentMethodService
        if ($this->configRepository->get('Novalnet.Novalnet_invoice_payment_active') == 'true') 
        {
 	    
-        return (bool)($this->paymentHelper->paymentActive() && $active_payment_allowed_country && $active_payment_minimum_amount && $active_payment_maximum_amount);
+        return (bool)($this->paymentHelper->paymentActive();
         } 
         return false;
     
@@ -112,3 +112,4 @@ class NovalnetInvoicePaymentMethod extends PaymentMethodService
         return false;
     }
 }
+
