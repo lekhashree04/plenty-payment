@@ -1,6 +1,3 @@
-
-
-
 <?php
 /**
  * This module is used for real time processing of
@@ -44,44 +41,18 @@ use Plenty\Modules\Plugin\DataBase\Contracts\Query;
 use Novalnet\Models\TransactionLog;
 use Plenty\Modules\Document\Models\Document;
 use Novalnet\Constants\NovalnetConstants;
-
 use Novalnet\Methods\NovalnetInvoicePaymentMethod;
-
-
 use Plenty\Modules\EventProcedures\Services\Entries\ProcedureEntry;
 use Plenty\Modules\EventProcedures\Services\EventProceduresService;
 use Novalnet\Controllers\PaymentController;
-/**
- * Class NovalnetServiceProvider
- *
- * @package Novalnet\Providers
- */
 class NovalnetServiceProvider extends ServiceProvider
 {
     use Loggable;
 
-    /**
-     * Register the route service provider
-     */
     public function register()
     {
         $this->getApplication()->register(NovalnetRouteServiceProvider::class);
     }
-
-    /**
-     * Boot additional services for the payment method
-     *
-     * @param Dispatcher $eventDispatcher
-     * @param paymentHelper $paymentHelper
-     * @param PaymentService $paymentService
-     * @param BasketRepositoryContract $basketRepository
-     * @param PaymentMethodContainer $payContainer
-     * @param PaymentMethodRepositoryContract $paymentMethodService
-     * @param FrontendSessionStorageFactoryContract $sessionStorage
-     * @param TransactionService $transactionLogData
-     * @param Twig $twig
-     * @param ConfigRepository $config
-     */
     public function boot( Dispatcher $eventDispatcher,
                           PaymentHelper $paymentHelper,
                           AddressRepositoryContract $addressRepository,
@@ -96,119 +67,122 @@ class NovalnetServiceProvider extends ServiceProvider
                           PaymentRepositoryContract $paymentRepository,
                           DataBase $dataBase,
                           EventProceduresService $eventProceduresService)
-    {
+{
 
-        // Register the Novalnet payment methods in the payment method container
-        $payContainer->register('plenty_novalnet::NOVALNET_INVOICE', NovalnetInvoicePaymentMethod::class,
-            [
-                AfterBasketChanged::class,
-                AfterBasketItemAdd::class,
-                AfterBasketCreate::class
-            ]);
-      
-        
-        // Listen for the event that gets the payment method content
-        $eventDispatcher->listen(GetPaymentMethodContent::class,
-                function(GetPaymentMethodContent $event) use($config, $paymentHelper, $addressRepository, $paymentService, $basketRepository, $paymentMethodService, $sessionStorage, $twig)
-                {
-        
-                    if($paymentHelper->getPaymentKeyByMop($event->getMop()))
-                    {   
-                        $paymentKey = $paymentHelper->getPaymentKeyByMop($event->getMop()); 
-                        $guaranteeStatus = $paymentService->getGuaranteeStatus($basketRepository->load(), $paymentKey);
-                        $basket = $basketRepository->load();            
-                        $billingAddressId = $basket->customerInvoiceAddressId;
-                        $address = $addressRepository->findAddressById($billingAddressId);
-                            foreach ($address->options as $option) {
-                            if ($option->typeId == 12) {
-                                $name = $option->value;
-                            }
-                            if ($option->typeId == 9) {
-                                $birthday = $option->value;
-                            }
-                        }
-                        $customerName = explode(' ', $name);
-                        $firstname = $customerName[0];
-                        if( count( $customerName ) > 1 ) {
-                            unset($customerName[0]);
-                            $lastname = implode(' ', $customerName);
-                        } else {
-                            $lastname = $firstname;
-                        }
-                        $firstName = empty ($firstname) ? $lastname : $firstname;
-                        $lastName = empty ($lastname) ? $firstname : $lastname;
-                            $endCustomerName = $firstName .' '. $lastName;
-                            $endUserName = $address->firstName .' '. $address->lastName;
-
-                        $name = trim($config->get('Novalnet.' . strtolower($paymentKey) . '_payment_name'));
-                        $paymentName = ($name ? $name : $paymentHelper->getTranslatedText(strtolower($paymentKey)));
-                          
-                            
-                         
-                                if(in_array($paymentKey, ['NOVALNET_INVOICE']))
+$payContainer->register('plenty_novalnet::NOVALNET_INVOICE', NovalnetInvoicePaymentMethod::class,
+    [
+         AfterBasketChanged::class,
+         AfterBasketItemAdd::class,
+         AfterBasketCreate::class
+    ]);
+    $eventDispatcher->listen(GetPaymentMethodContent::class,
+    function(GetPaymentMethodContent $event) use($config, $paymentHelper, $addressRepository, $paymentService, $basketRepository, $paymentMethodService, $sessionStorage, $twig)
+         {
+          if($paymentHelper->getPaymentKeyByMop($event->getMop()))
+            {   
+                $paymentKey = $paymentHelper->getPaymentKeyByMop($event->getMop()); 
+                $guaranteeStatus = $paymentService->getGuaranteeStatus($basketRepository->load(), $paymentKey);
+                 $basket = $basketRepository->load();            
+                 $billingAddressId = $basket->customerInvoiceAddressId;
+                 $address = $addressRepository->findAddressById($billingAddressId);
+                 foreach ($address->options as $option) 
+                  {
+                        if ($option->typeId == 12) 
+                          {
+                            $name = $option->value;
+                          }
+                           if ($option->typeId == 9) 
+                           {
+                              $birthday = $option->value;
+                           }
+                   }
+                  $customerName = explode(' ', $name);
+                  $firstname = $customerName[0];
+                  if( count( $customerName ) > 1 ) 
+                  {
+                        unset($customerName[0]);
+                        $lastname = implode(' ', $customerName);
+                  } else 
+                  {
+                        $lastname = $firstname;
+                  }
+                  $firstName = empty ($firstname) ? $lastname : $firstname;
+                  $lastName = empty ($lastname) ? $firstname : $lastname;
+                  $endCustomerName = $firstName .' '. $lastName;
+                  $endUserName = $address->firstName .' '. $address->lastName;
+                  $name = trim($config->get('Novalnet.' . strtolower($paymentKey) . '_payment_name'));
+                  $paymentName = ($name ? $name : $paymentHelper->getTranslatedText(strtolower($paymentKey)));
+                 if(in_array($paymentKey, ['NOVALNET_INVOICE']))
+                    {
+                        $processDirect = true;
+                        $B2B_customer   = false;
+                        if($paymentKey == 'NOVALNET_INVOICE')
+                         {
+                            $guaranteeStatus = $paymentService->getGuaranteeStatus($basketRepository->load(), $paymentKey);
+                            if($guaranteeStatus != 'normal' && $guaranteeStatus != 'guarantee')
+                              {
+                                $processDirect = false;
+                                $contentType = 'errorCode';
+                                $content = $guaranteeStatus;
+                               }
+                            else if($guaranteeStatus == 'guarantee')
                                 {
-                                    $processDirect = true;
-                                    $B2B_customer   = false;
-                                    if($paymentKey == 'NOVALNET_INVOICE')
-                                    {
-                                        $guaranteeStatus = $paymentService->getGuaranteeStatus($basketRepository->load(), $paymentKey);
-                                        if($guaranteeStatus != 'normal' && $guaranteeStatus != 'guarantee')
-                                        {
-                                            $processDirect = false;
-                                            $contentType = 'errorCode';
-                                            $content = $guaranteeStatus;
-                                        }
-                                        else if($guaranteeStatus == 'guarantee')
-                                        {
-                                            $processDirect = false;
-                                            
-                                            $paymentProcessUrl = $paymentService->getProcessPaymentUrl();
-                                            if (empty($address->companyName) &&  empty($birthday) ) {
-                                            $content = $twig->render('Novalnet::PaymentForm.NOVALNET_INVOICE', [
-                                                                'nnPaymentProcessUrl' => $paymentProcessUrl,
-                                                'paymentName' => $paymentName,  
-                                                'paymentMopKey'     =>  $paymentKey,
-                                                'guarantee_force' => trim($config->get('Novalnet.' . strtolower($paymentKey) . '_payment_guarantee_force_active'))
-                                            
-                                            ]);                                                 $contentType = 'htmlContent';
-                                            } else {
-                                                $processDirect = true;                                              
-                                                $B2B_customer  = true;
-                                            }
-                                         }
-                                    }
-                                    if ($processDirect) {
-                                    $content = '';
-                                    $contentType = 'continue';
-                                    $serverRequestData = $paymentService->getRequestParameters($basketRepository->load(), $paymentKey);
-                                    if (empty($serverRequestData['data']['first_name']) && empty($serverRequestData['data']['last_name'])) {
-                                            $content = $paymentHelper->getTranslatedText('nn_first_last_name_error');
-                                            $contentType = 'errorCode';   
-                                     } else {   
-                                        if( $B2B_customer) {
-                                            $serverRequestData['data']['payment_type'] = 'GUARANTEED_INVOICE';
-                                            $serverRequestData['data']['key'] = '41';
-                                            $serverRequestData['data']['birth_date'] = !empty($birthday) ? $birthday : '';
-						
-					   if (empty($address->companyName) && time() < strtotime('+18 years', strtotime($birthday))) {
-					      $content = $paymentHelper->getTranslatedText('dobinvalid');
-                                              $contentType = 'errorCode';   
-					    } elseif (!empty ($address->companyName) ) {
-            					unset($serverRequestData['data']['birth_date']);
-       					    }
-
-                                        }
-                                    $sessionStorage->getPlugin()->setValue('nnPaymentData', $serverRequestData);
-                                    
-                                    }
-                                    
-                                    } 
-                                } 
+                                $processDirect = false;
+                                $paymentProcessUrl = $paymentService->getProcessPaymentUrl();
+                                if (empty($address->companyName) &&  empty($birthday) )
+                                {
+                                     $content = $twig->render('Novalnet::PaymentForm.NOVALNET_INVOICE', 
+                                        ['nnPaymentProcessUrl' => $paymentProcessUrl,
+                                         'paymentName' => $paymentName,  
+                                         'paymentMopKey'     =>  $paymentKey,
+                                          'guarantee_force' => trim($config->get('Novalnet.' .strtolower($paymentKey).'_payment_guarantee_force_active'))
+                                          ]);                                                 
+                                     $contentType = 'htmlContent';
+                                 } else 
+                                 {
+                                          $processDirect = true;
+                                          $B2B_customer  = true;
+                                 }
+                                 }
                             }
-                                
+                                    
+
+
+                                    if ($processDirect) 
+                                    {
+                                        $content = '';
+                                        $contentType = 'continue';
+                                        $serverRequestData = $paymentService->getRequestParameters($basketRepository->load(), $paymentKey);
+                                        if (empty($serverRequestData['data']['first_name']) && empty($serverRequestData['data']['last_name'])) 
+                                               {
+                                                    $content = $paymentHelper->getTranslatedText('nn_first_last_name_error');
+                                                    $contentType = 'errorCode';   
+                                                } else 
+                                                {   
+                                                    if( $B2B_customer) 
+                                                    {
+                                                        $serverRequestData['data']['payment_type'] = 'GUARANTEED_INVOICE';
+                                                        $serverRequestData['data']['key'] = '41';
+                                                        $serverRequestData['data']['birth_date'] = !empty($birthday) ? $birthday : '';
+						
+                                					   if (empty($address->companyName) && time() < strtotime('+18 years', strtotime($birthday))) 
+                                                       {
+                                					      $content = $paymentHelper->getTranslatedText('dobinvalid');
+                                                        $contentType = 'errorCode';   
+					                                   } elseif (!empty ($address->companyName) ) 
+                                                       {
+            					                           unset($serverRequestData['data']['birth_date']);
+       					                                }
+
+                                                   }
+                                                            $sessionStorage->getPlugin()->setValue('nnPaymentData', $serverRequestData);
+                                    
+                                                 }
+                                        } 
+                             
                                 $event->setValue($content);
                                 $event->setType($contentType);
-                        } 
+                         
                 });
 
         // Listen for the event that executes the payment
@@ -262,7 +236,7 @@ class NovalnetServiceProvider extends ServiceProvider
 	    foreach ($get_transaction_details as $transaction_details) {
 	       $totalCallbackAmount += $transaction_details->callbackAmount;
 	    }
-        if (in_array($paymentKey, ['NOVALNET_INVOICE', 'NOVALNET_PREPAYMENT', 'NOVALNET_CC', 'NOVALNET_SEPA', 'NOVALNET_CASHPAYMENT', 'NOVALNET_SOFORT', 'NOVALNET_IDEAL', 'NOVALNET_EPS', 'NOVALNET_GIROPAY', 'NOVALNET_PAYPAL', 'NOVALNET_PRZELEWY']) && !empty($db_details['plugin_version'])
+        if (in_array($paymentKey, ['NOVALNET_INVOICE']) && !empty($db_details['plugin_version'])
         ) {
              
         try {
@@ -291,5 +265,7 @@ class NovalnetServiceProvider extends ServiceProvider
         }
         } 
       );  
+
+
     }
 }
