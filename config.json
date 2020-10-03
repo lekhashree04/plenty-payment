@@ -56,49 +56,184 @@
        "Config.NovalnetInvoiceTab":{  
          "label":"Config.NovalnetInvoiceTab",
          "formFields":{  
-            "Novalnet_invoice_payment_active":{  
-               "type":"checkBox",
-               "required":false,
-               "label":"Config.paymentActiveLabel",
-               "options":{  
-                  "defaultValue":false
-               }
+            
+            "novalnet_invoice_payment_active":
+            {  
+                     "type":"checkBox",
+                     "required":false,
+                     "label":"Config.paymentActiveLabel",
+                     "options":{  
+                     "defaultValue":false
+                               }
             },
-            "Novalnet_invoice_test_mode":{  
-               "type":"checkBox",
-               "required":false,
-               "label":"Config.testModeLabel",
-               "options":{  
-                  "defaultValue":false
-               }
+            "novalnet_invoice_test_mode":
+            {  
+                     "type":"checkBox",
+                     "required":false,
+                     "label":"Config.testModeLabel",
+                     "options":{  
+                     "defaultValue":false
+                               }
             },
-            "Novalnet_invoice_payment_name":{  
-               "type":"inputText",
-               "required":false,
-               "label":"Config.paymentNameLabel",
-               "options":{  
-                  "defaultValue":""
-               }
+            "novalnet_invoice_payment_name":
+            {  
+                     "type":"inputText",
+                     "required":false,
+                     "label":"Config.paymentNameLabel",
+                     "options":{  
+                     "defaultValue":""
+                                 }
             },
-            "Novalnet_invoice_description":{  
-               "type":"inputText",
-               "required":false,
-               "label":"Config.paymentDescriptionLabel",
-               "options":{  
-                  "defaultValue":""
-               }
+            "novalnet_invoice_description":
+            {  
+                     "type":"inputText",
+                     "required":false,
+                     "label":"Config.paymentDescriptionLabel",
+                     "options":{  
+                        "defaultValue":""
+                              }
             },
-            "Novalnet_invoice_due_date":{  
-               "type":"inputText",
-               "required":false,
-               "label":"Config.invoiceDueDateLabel",
-               "options":{  
-                  "tooltip":"Config.invoiceDueDateTooltip",
-                  "defaultValue":""
-               }
+            "novalnet_invoice_payment_logo":
+            {
+
+                     "type":"inputFile",
+                     "required":false,
+                     "label":"Config.paymentLogoLabel",
+                     "options":{  
+                        "defaultValue":"images/invoice.png"
+                              }
+            },
+            "novalnet_invoice_due_date":
+            {  
+                     "type":"inputText",
+                     "required":false,
+                     "label":"Config.invoiceDueDateLabel",
+                     "options":{  
+                        "tooltip":"Config.invoiceDueDateTooltip",
+                        "defaultValue":""
+                     }
+            },
+            "novalnet_invoice_payment_action": 
+            {
+                  "type": "multiCheckBox",
+                  "required": false,
+                  "label": "Config.paymentActionLabel",
+                  "options": {
+                  "defaultValue": "false",
+                  "checkBoxValues": [
+                                   {
+                                     "value": "false",
+                                     "caption": "Config.onholdCapture"
+                                   },
+                                   {
+                                     "value": "true",
+                                     "caption": "Config.onholdAuthorize"
+                                   }
+              
+                                    ] }  
+    },
+            "novalnet_invoice_on_hold":
+            {  
+                        "type":"inputText",
+                        "required":false,
+                        "label":"Config.onHoldLabel",
+                        "options":{  
+                           "tooltip":"Config.onHoldTooltip",
+                           "defaultValue":""
+                        }
+            },
+            "novalnet_invoice_order_completion_status":
+            {  
+                           "type":"inputText",
+                           "required":false,
+                           "label":"Config.orderCompletionStatusLabel",
+                           "options":{  
+                              "defaultValue":"7.1"
+                           }
+            },
+            "novalnet_invoice_callback_order_status":
+            {  
+                           "type":"inputText",
+                           "required":false,
+                           "label":"Config.callbackOrderStatusLabel",
+                           "options":{  
+                              "defaultValue":"9.5"
+                           }
+            },
+            "novalnet_invoice_payment_guarantee_active":
+            {  
+                        "type":"checkBox",
+                        "required":false,
+                        "label":"Config.paymentGuaranteeActiveLabel",
+                        "options":{  
+                           "defaultValue":false
+                        }
+            },
+            "novalnet_invoice_guarantee_min_amount":
+            {  
+                        "type":"inputText",
+                        "required":false,
+                        "label":"Config.guaranteeMinAmountLabel",
+                        "options":{  
+                           "tooltip":"Config.guaranteeMinAmountTooltip",
+                           "defaultValue":""
+                        }
+            },
+            "novalnet_invoice_payment_guarantee_status":
+            {  
+                     "type":"inputText",
+                     "required":false,
+                     "label":"Config.paymentGuaranteeStatus",
+                     "options":{  
+                        "defaultValue":"3"
+                     }
+            },
+           "novalnet_invoice_payment_guarantee_order_completion_status":
+           {  
+                     "type":"inputText",
+                     "required":false,
+                     "label":"Config.paymentGuaranteeOrderCompletionStatus",
+                     "options":{  
+                        "defaultValue":"7.1"
+                     }
+            },
+            "novalnet_invoice_payment_guarantee_force_active":
+            {  
+                     "type":"checkBox",
+                     "required":false,
+                     "label":"Config.paymentGuaranteeForceActiveLabel",
+                     "options":{  
+                        "defaultValue":true
+                     }
+            },
+            "novalnet_invoice_minimum_order_amount":
+            {  
+                  "type":"inputText",
+                  "required":false,
+                  "label":"Config.minimumOrderAmountLabel",
+                  "options":{  
+                     "tooltip":"Config.minimumOrderAmountTooltip",
+                     "defaultValue":""
+                  }
+            },
+            "novalnet_invoice_maximum_order_amount":
+            {  
+                  "type":"inputText",
+                  "required":false,
+                  "label":"Config.maximumOrderAmountLabel",
+                  "options":{  
+                     "tooltip":"Config.maximumOrderAmountTooltip",
+                     "defaultValue":""
+                  }
+            },
+            "novalnet_invoice_allowed_country":
+            {  
+                     "type":"inputText",
+                     "required":false,
+                     "label":"Config.allowedCountryLabel",
+                     "options":{  
+                        "defaultValue":""
+                     }
             }
          }
       }
-
-   }
-}
