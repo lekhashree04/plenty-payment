@@ -35,12 +35,12 @@ class TransactionService
             $Transaction->orderNo             = $TransactionData['order_no'];
             $Transaction->amount              = $TransactionData['amount'];
             $Transaction->referenceTid        = $TransactionData['ref_tid'];
-            $Transaction->NovalnetTransactionDatetime = date('Y-m-d H:i:s');
+            $Transaction->TransactionDatetime = date('Y-m-d H:i:s');
             $Transaction->tid                 = $TransactionData['tid'];
             $Transaction->paymentName         = $TransactionData['payment_name'];
     
             
-            $database->save($SampleNovalnetTransaction);
+            $database->save($NovalnetTransaction);
         } catch (\Exception $e) {
             $this->getLogger(__METHOD__)->error('Callback table insert failed!.', $e);
         }
@@ -55,4 +55,7 @@ class TransactionService
     }
     
 }
+
+
+
 
