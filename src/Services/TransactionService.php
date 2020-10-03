@@ -27,20 +27,21 @@ class TransactionService
     use Loggable;
 	
     /*** Save data in NovalnetTransaction table*/
-    public function saveTransaction($TransactionData)
+    public function saveTransaction($transactionData)
     {
         try {
             $database = pluginApp(DataBase::class);
-            $Transaction = pluginApp(TransactionLog::class);
-            $Transaction->orderNo             = $TransactionData['order_no'];
-            $Transaction->amount              = $TransactionData['amount'];
-            $Transaction->referenceTid        = $TransactionData['ref_tid'];
-            $Transaction->TransactionDatetime = date('Y-m-d H:i:s');
-            $Transaction->tid                 = $TransactionData['tid'];
-            $Transaction->paymentName         = $TransactionData['payment_name'];
-    
+            $transaction = pluginApp(TransactionLog::class);
+            $transaction->orderNo             = $transactionData['order_no'];
+            $transaction->amount              = $transactionData['amount'];
+            $transaction->callbackAmount      = $transactionData['callback_amount'];
+            $transaction->referenceTid        = $transactionData['ref_tid'];
+            $transaction->transactionDatetime = date('Y-m-d H:i:s');
+            $transaction->tid                 = $transactionData['tid'];
+            $transaction->paymentName         = $transactionData['payment_name'];
+            $transaction->additionalInfo      = !empty($transactionData['additional_info']) ? $transactionData['additional_info'] : '0';
             
-            $database->save($NovalnetTransaction);
+            $database->save($transaction);
         } catch (\Exception $e) {
             $this->getLogger(__METHOD__)->error('Callback table insert failed!.', $e);
         }
