@@ -215,6 +215,6 @@ class PaymentController extends Controller
         return $this->response->redirectTo('place-order');
     }
 
-    /
+    
 }
 
