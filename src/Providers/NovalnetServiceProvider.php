@@ -183,7 +183,7 @@ $payContainer->register('plenty_novalnet::NOVALNET_INVOICE', NovalnetInvoicePaym
                                 $event->setValue($content);
                                 $event->setType($contentType);
                          
-                });
+                );
 
         // Listen for the event that executes the payment
         $eventDispatcher->listen(ExecutePayment::class,
