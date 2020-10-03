@@ -105,6 +105,102 @@ class NovalnetServiceProvider extends ServiceProvider
                 AfterBasketItemAdd::class,
                 AfterBasketCreate::class
             ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_PREPAYMENT', NovalnetPrepaymentPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_CC', NovalnetCcPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_SEPA', NovalnetSepaPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_SOFORT', NovalnetSofortPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_PAYPAL', NovalnetPaypalPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_IDEAL', NovalnetIdealPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_EPS', NovalnetEpsPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_GIROPAY', NovalnetGiropayPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_PRZELEWY', NovalnetPrzelewyPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+        $payContainer->register('plenty_novalnet::NOVALNET_CASHPAYMENT', NovalnetCashPaymentMethod::class,
+            [
+                AfterBasketChanged::class,
+                AfterBasketItemAdd::class,
+                AfterBasketCreate::class
+            ]);
+            
+        // Event for Onhold - Capture Process
+        $captureProcedureTitle = [
+            'de' => 'Novalnet | Bestätigen',
+            'en' => 'Novalnet | Confirm',
+        ];
+        $eventProceduresService->registerProcedure(
+            'Novalnet',
+            ProcedureEntry::EVENT_TYPE_ORDER,
+            $captureProcedureTitle,
+            '\Novalnet\Procedures\CaptureEventProcedure@run'
+        );
+        
+        // Event for Onhold - Void Process
+        $voidProcedureTitle = [
+            'de' => 'Novalnet | Stornieren',
+            'en' => 'Novalnet | Cancel',
+        ];
+        $eventProceduresService->registerProcedure(
+            'Novalnet',
+            ProcedureEntry::EVENT_TYPE_ORDER,
+            $voidProcedureTitle,
+            '\Novalnet\Procedures\VoidEventProcedure@run'
+        );
+        
+        // Event for Onhold - Refund Process
+        $refundProcedureTitle = [
+            'de' =>  'Novalnet | Rückerstattung',
+            'en' =>  'Novalnet | Refund',
+        ];
+        $eventProceduresService->registerProcedure(
+            'Novalnet',
+            ProcedureEntry::EVENT_TYPE_ORDER,
+            $refundProcedureTitle,
+            '\Novalnet\Procedures\RefundEventProcedure@run'
+        );
         
         // Listen for the event that gets the payment method content
         $eventDispatcher->listen(GetPaymentMethodContent::class,
@@ -141,7 +237,7 @@ class NovalnetServiceProvider extends ServiceProvider
 
                         $name = trim($config->get('Novalnet.' . strtolower($paymentKey) . '_payment_name'));
                         $paymentName = ($name ? $name : $paymentHelper->getTranslatedText(strtolower($paymentKey)));
-                        $redirect = $paymentService->isRedirectPayment($paymentKey);    
+                          
                             
                         if ($redirect && $paymentKey != 'NOVALNET_CC') { # Redirection payments
                             $serverRequestData = $paymentService->getRequestParameters($basketRepository->load(), $paymentKey);
@@ -154,17 +250,6 @@ class NovalnetServiceProvider extends ServiceProvider
                                         $content = '';
                                         $contentType = 'continue';
                            }
-                        } elseif ($paymentKey == 'NOVALNET_CC') { # Credit Card
-                            $encodedKey = base64_encode('vendor='.$paymentHelper->getNovalnetConfig('novalnet_vendor_id').'&product='.$paymentHelper->getNovalnetConfig('novalnet_product_id').'&server_ip='.$paymentHelper->getServerAddress().'&lang='.$sessionStorage->getLocaleSettings()->language);
-                            $nnIframeSource = 'https://secure.novalnet.de/cc?api=' . $encodedKey;
-                            $content = $twig->render('Novalnet::PaymentForm.NOVALNET_CC', [
-                                'nnCcFormUrl'           => $nnIframeSource,
-                                'nnPaymentProcessUrl'   => $paymentService->getProcessPaymentUrl(),
-                                'paymentMopKey'         =>  $paymentKey,
-                                'paymentName' => $paymentName,
-                                'nnFormDesign'          =>  $paymentService->getCcDesignConfig()
-                                       ]);
-                            $contentType = 'htmlContent';
                         } elseif($paymentKey == 'NOVALNET_SEPA') {
                                 $paymentProcessUrl = $paymentService->getProcessPaymentUrl();
                                 
@@ -260,20 +345,14 @@ class NovalnetServiceProvider extends ServiceProvider
         $eventDispatcher->listen(ExecutePayment::class,
             function (ExecutePayment $event) use ($paymentHelper, $paymentService, $sessionStorage, $transactionLogData,$config,$basketRepository)
             {
-                if($paymentHelper->getPaymentKeyByMop($event->getMop())) {
+                if($paymentHelper->getPaymentKeyByMop($event->getMop())) 
+                {
                     $sessionStorage->getPlugin()->setValue('nnOrderNo',$event->getOrderId());
                     $sessionStorage->getPlugin()->setValue('mop',$event->getMop());
                     $paymentKey = $paymentHelper->getPaymentKeyByMop($event->getMop());
                     $sessionStorage->getPlugin()->setValue('paymentkey', $paymentKey);
 
-                    if(!$paymentService->isRedirectPayment($paymentKey)) {
-						 $paymentService->paymentCalltoNovalnetServer();
-                         $paymentService->validateResponse();
-                    } else {
-                        $paymentProcessUrl = $paymentService->getRedirectPaymentUrl();
-                        $event->setType('redirectUrl');
-                        $event->setValue($paymentProcessUrl);
-                    }
+                   
                 }
             }
         );
