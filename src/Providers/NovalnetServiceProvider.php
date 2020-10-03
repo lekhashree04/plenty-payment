@@ -46,16 +46,7 @@ use Plenty\Modules\Document\Models\Document;
 use Novalnet\Constants\NovalnetConstants;
 
 use Novalnet\Methods\NovalnetInvoicePaymentMethod;
-use Novalnet\Methods\NovalnetPrepaymentPaymentMethod;
-use Novalnet\Methods\NovalnetCcPaymentMethod;
-use Novalnet\Methods\NovalnetSepaPaymentMethod;
-use Novalnet\Methods\NovalnetSofortPaymentMethod;
-use Novalnet\Methods\NovalnetPaypalPaymentMethod;
-use Novalnet\Methods\NovalnetIdealPaymentMethod;
-use Novalnet\Methods\NovalnetEpsPaymentMethod;
-use Novalnet\Methods\NovalnetGiropayPaymentMethod;
-use Novalnet\Methods\NovalnetPrzelewyPaymentMethod;
-use Novalnet\Methods\NovalnetCashPaymentMethod;
+
 
 use Plenty\Modules\EventProcedures\Services\Entries\ProcedureEntry;
 use Plenty\Modules\EventProcedures\Services\EventProceduresService;
