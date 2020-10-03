@@ -165,7 +165,7 @@ class PaymentService
         if($nnPaymentData['payment_id'] == '59' && !empty($nnPaymentData['cp_checkout_token']))
         {
         $this->sessionStorage->getPlugin()->setValue('novalnet_checkout_token', $nnPaymentData['cp_checkout_token']);
-        $this->sessionStorage->getPlugin()->setValue('novalnet_checkout_url', $this->getBarzhalenTestMode($nnPaymentData['test_mode']));        
+              
         }
         
         $additional_info = $this->additionalInfo($nnPaymentData);
@@ -392,7 +392,7 @@ class PaymentService
                     if($this->config->get('Novalnet.novalnet_cc_3d') == 'true') {
                         $paymentRequestData['cc_3d'] = '1';
                     }
-                    $url = NovalnetConstants::CC3D_PAYMENT_URL;
+                    
                     }
         } else if($paymentKey == 'NOVALNET_SEPA') {
                     $dueDate = $this->paymentHelper->getNovalnetConfig('novalnet_sepa_due_date');
@@ -416,17 +416,7 @@ class PaymentService
         }
         }
 
-        if($this->isRedirectPayment($paymentKey))
-        {
-        $paymentRequestData['uniqid'] = $this->paymentHelper->getUniqueId();
-        $this->encodePaymentData($paymentRequestData);
-        $paymentRequestData['implementation'] = 'ENC';
-        $paymentRequestData['return_url'] = $paymentRequestData['error_return_url'] = $this->getReturnPageUrl();
-        $paymentRequestData['return_method'] = $paymentRequestData['error_return_method'] = 'POST';
-        if ($paymentKey != 'NOVALNET_CC') {
-            $paymentRequestData['user_variable_0'] = $this->webstoreHelper->getCurrentWebstoreConfiguration()->domainSsl;
-        }
-         }
+        
         
         return $url;
     }
