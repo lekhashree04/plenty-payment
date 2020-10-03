@@ -10,7 +10,7 @@
  *
  * @author       Novalnet AG
  * @copyright(C) Novalnet
- * All rights reserved. https://www.Novalnet.de/payment-plugins/kostenlos/lizenz
+ * All rights reserved. https://www.novalnet.de/payment-plugins/kostenlos/lizenz
  */
 
 namespace Novalnet\Services;
@@ -21,12 +21,22 @@ use Novalnet\Models\TransactionLog;
 use Plenty\Plugin\Log\Loggable;
 use Novalnet\Services\PaymentService;
 
-/*** Class NovalnetNovalnetTransactionService*/
+/**
+ * Class TransactionService
+ *
+ * @package Novalnet\Services
+ */
 class TransactionService
 {
     use Loggable;
 	
-    /*** Save data in NovalnetTransaction table*/
+		
+
+    /**
+     * Save data in transaction table
+     *
+     * @param $transactionData
+     */
     public function saveTransaction($transactionData)
     {
         try {
@@ -47,7 +57,14 @@ class TransactionService
         }
     }
 
-    /** * Retrieve NovalnetTransaction log table data*/
+    /**
+     * Retrieve transaction log table data
+     *
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return array
+     */
     public function getTransactionData($key, $value)
     {
         $database = pluginApp(DataBase::class);
@@ -56,7 +73,3 @@ class TransactionService
     }
     
 }
-
-
-
-
